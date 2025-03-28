@@ -36,5 +36,14 @@ Remove-Item (Get-PSReadlineOption).HistorySavePath
 # Ensure firewall rules are persistent after reboot by configuring rules to apply on all profiles
 Set-NetFirewallProfile -Profile Domain, Private, Public -Enabled True
 
+# Change network profile to Private
+$networkProfile = Get-NetConnectionProfile | Where-Object {$_.NetworkCategory -eq "Public"}
+if ($networkProfile) {
+    Set-NetConnectionProfile -InterfaceIndex $networkProfile.InterfaceIndex -NetworkCategory Private
+    Write-Host "Network profile changed to Private."
+} else {
+    Write-Host "No Public network profile found."
+}
+
 # Exit PowerShell session
 Exit
