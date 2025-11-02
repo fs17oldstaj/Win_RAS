@@ -26,8 +26,8 @@ winrm set winrm/config/service @{AllowUnencrypted="true"}
 winrm set winrm/config/service/auth @{Basic="true"}
 
 # Manually configure firewall to allow WinRM on Public networks (for both HTTP and HTTPS)
-New-NetFirewallRule -DisplayName "Allow WinRM on Public" -Direction Inbound -Protocol TCP -LocalPort 5985 -Action Allow -Profile Public
-New-NetFirewallRule -DisplayName "Allow WinRM Secure" -Direction Inbound -Protocol TCP -LocalPort 5986 -Action Allow -Profile Public
+New-NetFirewallRule -DisplayName "Allow WinRM on Public" -Direction Inbound -Protocol TCP -LocalPort 5985 -Action Allow -Profile Any
+New-NetFirewallRule -DisplayName "Allow WinRM Secure" -Direction Inbound -Protocol TCP -LocalPort 5986 -Action Allow -Profile Any
 
 # Add WinRM listeners for HTTP and HTTPS (even if they don't exist)
 winrm quickconfig -force
