@@ -1,0 +1,62 @@
+# Variables
+$Username = "Admin"
+
+# 1. Remove the user from the Administrators group (if member)
+if (Get-LocalGroupMember -Group "Administrators" -Member $Username -ErrorAction SilentlyContinue) {
+    Remove-LocalGroupMember -Group "Administrators" -Member $Username -ErrorAction SilentlyContinue
+    Write-Host "Removed '$Username' from Administrators group."
+} else {
+    Write-Host "User '$Username' was not in Administrators group (or group membership not found)."
+}
+
+# 2. Delete the local user account (if exists)
+if (Get-LocalUser -Name $Username -ErrorAction SilentlyContinue) {
+    Remove-LocalUser -Name $Username -ErrorAction SilentlyContinue
+    Write-Host "User '$Username' deleted."
+} else {
+    Write-Host "User '$Username' did not exist."
+}
+
+# 3. Disable and stop WinRM service
+Stop-Service -Name WinRM -ErrorAction SilentlyContinue
+Set-Service -Name WinRM -StartupType Disabled -ErrorAction SilentlyContinue
+Write-Host "WinRM service stopped and disabled."
+
+# 4. Remove WinRM listeners (HTTP & HTTPS)
+winrm delete winrm/config/listener?Address=*+Transport=HTTP -ErrorAction SilentlyContinue
+winrm delete winrm/config/listener?Address=*+Transport=HTTPS -ErrorAction SilentlyContinue
+Write-Host "WinRM listeners for HTTP/HTTPS removed."
+
+# 5. Reset WinRM service settings (unencrypted & Basic auth) back to default
+winrm set winrm/config/service @{AllowUnencrypted="false"} -ErrorAction SilentlyContinue
+winrm set winrm/config/service/auth @{Basic="false"} -ErrorAction SilentlyContinue
+Write-Host "WinRM service config AllowUnencrypted and Basic authentication reset."
+
+# 6. Remove firewall rules created for WinRM
+Remove-NetFirewallRule -DisplayName "Allow WinRM on Public" -ErrorAction SilentlyContinue
+Remove-NetFirewallRule -DisplayName "Allow WinRM Secure" -ErrorAction SilentlyContinue
+Write-Host "Firewall rules for WinRM removed."
+
+# 7. Reset LocalAccountTokenFilterPolicy to 0 (or remove if you prefer)
+Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" `
+  -Name "LocalAccountTokenFilterPolicy" -Value 0 -Force
+Write-Host "LocalAccountTokenFilterPolicy set back to 0."
+
+# 8. Remove the “hidden from login screen” registry entry for the user
+$regPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\SpecialAccounts\UserList"
+if (Test-Path $regPath) {
+    Remove-ItemProperty -Path $regPath -Name $Username -ErrorAction SilentlyContinue
+    Write-Host "Registry entry hiding user '$Username' removed."
+} else {
+    Write-Host "Registry path for SpecialAccounts\UserList did not exist."
+}
+
+# 9. (Optional) Network profile: if you changed the network profile to Private, you can revert
+$networkProfile = Get-NetConnectionProfile | Where-Object {$_.NetworkCategory -eq "Private"}
+foreach ($np in $networkProfile) {
+    # Example: change back to Public
+    Set-NetConnectionProfile -InterfaceIndex $np.InterfaceIndex -NetworkCategory Public
+    Write-Host "Network profile on InterfaceIndex $($np.InterfaceIndex) changed back to Public."
+}
+
+Write-Host "Undo script completed."
